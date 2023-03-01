@@ -10,22 +10,26 @@ ws = wb.active
 def set_column_widths():
     ws.column_dimensions['A'].width = 5
     ws.column_dimensions['B'].width = 50
-    ws.column_dimensions['C'].width = 40
-    ws.column_dimensions['D'].width = 30
-    ws.column_dimensions['E'].width = 30
-    ws.column_dimensions['F'].width = 30
+    ws.column_dimensions['C'].width = 20
+    ws.column_dimensions['D'].width = 10
+    ws.column_dimensions['E'].width = 10
+    ws.column_dimensions['F'].width = 20
+    ws.column_dimensions['G'].width = 20
+    ws.column_dimensions['H'].width = 20
+    ws.column_dimensions['I'].width = 20
 
 # set column names
 
 
+column_names = ['S.No', 'Name', 'Category', 'Subscribers', 'Average Views',
+                'Youtube Channel Link', 'Twitter Account', 'Instagram Account', 'Facebook Page']
+
+
 def set_column_names():
-    ws.cell(row=1, column=1, value="S.No")
-    ws.cell(row=1, column=2, value="Name")
-    ws.cell(row=1, column=3, value="Category")
-    ws.cell(row=1, column=4, value="Subscribers")
-    ws.cell(row=1, column=5, value="Average Views")
-    ws.cell(row=1, column=5, value="Channel Link")
+    for index, column_name in enumerate(column_names):
+        ws.cell(row=1, column=index+1).value = column_name
+        # ws.cell(row=1, column=index+1).alignment = Alignment(horizontal='center')
 
 
 set_column_widths()
-set_column_widths()
+set_column_names()

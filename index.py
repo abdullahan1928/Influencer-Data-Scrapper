@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 import pprint
 import json
+import excel_logic as ex
+import cloudscraper
 
 ct.start_time
 
@@ -11,8 +13,6 @@ url = 'https://www.noxinfluencer.com/youtube-channel-rank/top-100-all-all-youtub
 page = requests.get(url)
 
 AreaDict = {}
-
-# print(page.content)
 
 soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -24,13 +24,33 @@ for result in results:
     countryAbbreviation = str(result['value']).lower()
     AreaDict[countryName] = countryAbbreviation
 
-# pretty print the dictionary
-# pprint.pprint(AreaDict)
 
-# print(json.dumps(AreaDict, indent=4))
+def getIndividualChannelData(noxInfluencerUrl):
+    page = requests.get(noxInfluencerUrl)
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    try:
+        twitterAccount = soup.find('a', attrs={'title': 'Twitter'})['href']
+    except:
+        twitterAccount = "None"
+
+    try:
+        instagramAccount = soup.find('a', attrs={'title': 'Instagram'})['href']
+    except:
+        instagramAccount = "None"
+
+    try:
+        facebookPage = soup.find('a', attrs={'title': 'Facebook'})['href']
+    except:
+        facebookPage = "None"
+
+    return twitterAccount, instagramAccount, facebookPage
 
 
-def getYoutubeData(url):
+totalIndex = 1
+
+
+def getTopYoutubeChannelsBySubscribers(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -41,7 +61,11 @@ def getYoutubeData(url):
         channelLink = table.find('a', attrs={'class': 'link clearfix'})['href']
         channelLinkOnYoutube = channelLink.replace(
             '/youtube', 'https://www.youtube.com')
+
         channelLinkOnNoxInfluencer = f'https://www.noxinfluencer.com{channelLink}'
+
+        twitterAccount, instagramAccount, facebookPage = getIndividualChannelData(
+            channelLinkOnNoxInfluencer)
 
         channelName = table.find(
             'span', attrs={'class': 'title pull-left ellipsis'}).text
@@ -57,13 +81,37 @@ def getYoutubeData(url):
 
         channelAverageViews = table.find('span', attrs={
                                          'class': 'rank-cell pull-left rank-avg-view'}).find('span', attrs={'class': 'number'}).text
+        singleEntry = {
+            'index': index,
+            'channelName': channelName,
+            'channelCategory': channelCategory,
+            'channelSubscribers': channelSubscribers,
+            'channelAverageViews': channelAverageViews,
+            'channelLinkOnYoutube': channelLinkOnYoutube,
+            'twitterAccount': twitterAccount,
+            'instagramAccount': instagramAccount,
+            'facebookPage': facebookPage
+        }
 
-        print(f'{index} {channelName} {channelCategory} {channelSubscribers} {channelAverageViews} {channelLinkOnYoutube} {channelLinkOnNoxInfluencer}')
+        print(json.dumps(singleEntry, indent=4))
+
+        global totalIndex
+
+        i = 1
+        for key in singleEntry:
+            ex.ws.cell(row=totalIndex + 1, column=i,
+                       value=singleEntry[key])
+            i += 1
+
+        totalIndex += 1
+
+        if index == 80:
+            ex.wb.save('youtube_channels.xlsx')
 
 
 for name in AreaDict:
     url = f'https://www.noxinfluencer.com/youtube-channel-rank/top-100-{AreaDict[name]}-all-youtuber-sorted-by-subs-weekly?area='
 
-    getYoutubeData(url)
+    getTopYoutubeChannelsBySubscribers(url)
 
 ct.calc_total_time()

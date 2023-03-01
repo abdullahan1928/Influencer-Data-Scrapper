@@ -24,6 +24,8 @@ var/
 pip-log.txt
 pip-delete-this-directory.txt
 
+/*.xlsx
+
 # Unit test / coverage reports
 .tox/
 .coverage
